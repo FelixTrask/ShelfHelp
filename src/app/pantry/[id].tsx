@@ -10,6 +10,19 @@ type PantryDetail = {
     current_status: 'green' | 'orange' | 'red' | 'unknown';
 }
 
+const getStatus = (status: string | undefined) => {
+  switch (status) {
+    case 'green':
+      return { color: '#2e7d32', label: 'Stocked', bg: '#e8f5e9' };
+    case 'orange':
+      return { color: '#e65100', label: 'Low Stock', bg: '#fff3e0' };
+    case 'red':
+      return { color: '#c62828', label: 'Empty', bg: '#ffebee' };
+    default:
+      return { color: '#616161', label: 'Unknown', bg: '#f5f5f5' };
+  }
+};
+
 export default function PantryDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
@@ -73,8 +86,8 @@ export default function PantryDetailScreen() {
 
             <View style={styles.statusRow}>
                 <Text style={styles.statusLabel}>Status:</Text>
-                <Text style={[styles.statusValue, { color: getStatusColor(pantry?.current_status) }]}>
-                    {pantry?.current_status?.toUpperCase() ?? 'UNKNOWN'}
+                <Text style={[styles.statusValue, { color: getStatus(pantry?.current_status).color }]}>
+                    {getStatus(pantry?.current_status).label}
                 </Text>
             </View>
 
@@ -86,15 +99,6 @@ export default function PantryDetailScreen() {
     </View>
     );
 }
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'green': return '#2e7d32';
-    case 'orange': return '#e65100';
-    case 'red': return '#c62828';
-    default: return '#757575';
-  }
-};
 
 const styles = StyleSheet.create({
     overlay: {
