@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/Supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -23,14 +24,20 @@ const getStatus = (status: string | undefined) => {
   }
 };
 
+const FAVORITES_KEY = '@favorite_pantries';
+
 export default function PantryDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const [pantry, setPantry] = useState<PantryDetail | null>(null);
     const[loading, setLoading] = useState(true);
+    const[isFavorite, setIsFavorite] = useState(false);
 
     useEffect(() => {
-        if (id) fetchPantry();
+        if (id) {
+            fetchPantry();
+            checkIfFavorite();
+        }
     }, [id]);
 
     const fetchPantry = async () => {
@@ -47,6 +54,36 @@ export default function PantryDetailScreen() {
             console.error(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const checkIfFavorite = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            if (storedFavorites) {
+                const favoritesList: string[] = JSON.parse(storedFavorites);
+                setIsFavorite(favoritesList.includes(id as string));
+            }
+        } catch (error) {
+            console.error('Error checking favorites:', error);
+        }
+    };
+
+    const toggleFavorite = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            let favoritesList: string[] = storedFavorites ? JSON.parse(storedFavorites) : [];
+
+            if (isFavorite) {
+                favoritesList = favoritesList.filter((favID) => favID != id);
+            } else {
+                favoritesList.push(id as string);
+            }
+
+            await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favoritesList));
+            setIsFavorite(!isFavorite);
+        } catch (error) {
+            console.error('Error updating favorites:', error);
         }
     };
 
@@ -71,9 +108,16 @@ export default function PantryDetailScreen() {
         <View style={styles.card}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.title} numberOfLines={1}>
-                    {pantry?.name}
-                </Text>
+                <View style={styles.titleRow}>
+                    <Text style={styles.title} numberOfLines={1}>
+                        {pantry?.name}
+                    </Text>
+                    <TouchableOpacity onPress={toggleFavorite} style={styles.favoritesButton}>
+                        <Text style={[styles.starText, isFavorite && styles.starActive]}>
+                            {isFavorite ? '★' : '☆'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
                 <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
                     <Text style={styles.closeText}>✕</Text>
                 </TouchableOpacity>
@@ -124,6 +168,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 6,
+    },
+    titleRow: {
+        flexDirection: 'row',
+        flex: 1,
+        alignItems: 'center',
+        marginRight: 8,
     },
     title: {
         fontSize: 18,
@@ -185,4 +235,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#646464',
     },
+    favoritesButton: {
+        padding: 4,
+    },
+    starText: {
+        fontSize: 22,
+        color: '#b0bec5',
+    },
+    starActive: {
+        color: '#fbc53c'
+    }
 });

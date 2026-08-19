@@ -1,8 +1,9 @@
 import PantryMap from '@/components/PantryMap';
 import { supabase } from '@/lib/Supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Pantry = {
@@ -15,6 +16,8 @@ type Pantry = {
 };
 
 type PantryWithDistance = Pantry & { distance: number };
+
+const FAVORITES_KEY = '@favorite_pantries';
 
 // Haversine formula
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -42,6 +45,7 @@ const getStatus = (status: string) => {
 export default function HomeListScreen() {
     const router = useRouter();
     const [pantries, setPantries] = useState<PantryWithDistance[]>([]);
+    const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
     const [location, setLocation] = useState<Location.LocationObject>();
     const [permissionGranted, setPermissionGranted] = useState(true);
     const [loading, setLoading] = useState(true);
@@ -123,8 +127,29 @@ export default function HomeListScreen() {
         }
     };
 
+    const loadFavorites = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            if (storedFavorites) {
+                setFavoriteIds(JSON.parse(storedFavorites));
+            } else {
+                setFavoriteIds([]);
+            }
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            loadFavorites();
+            fetchPantryData();
+        }, [location])
+    );
+
     const renderPantryCard = (pantry: PantryWithDistance) => {
         const status = getStatus(pantry.current_status);
+        const isFav = favoriteIds.includes(pantry.id);
 
         return (
             <TouchableOpacity 
@@ -133,7 +158,9 @@ export default function HomeListScreen() {
                 onPress={() => router.push(`/pantry/${pantry.id}`)}
             >
                 <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle} numberOfLines={1}>{pantry.name}</Text>
+                    <Text style={styles.cardTitle} numberOfLines={1}>
+                        {isFav ? '★ ' : ''}{pantry.name}
+                    </Text>
                 </View>
                 
                 <View style={styles.cardBody}>
@@ -157,6 +184,8 @@ export default function HomeListScreen() {
         );
     }
 
+    const favoritedPantries = pantries.filter(p => favoriteIds.includes(p.id));
+
     const nearbyPantries = pantries;
 
     return (
@@ -171,9 +200,14 @@ export default function HomeListScreen() {
                     <Text style={styles.subtitle}>Community Pantry Tracker</Text>
                 </View>
 
-                <TouchableOpacity style={styles.mapButton} onPress={() => router.push('/map')}>
-                    <Text style={styles.mapButtonText}>Open Map View</Text>
-                </TouchableOpacity>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Favorites</Text>
+                    {favoritedPantries.length > 0 ? (
+                        favoritedPantries.map(renderPantryCard)
+                    ) : (
+                        <Text style={styles.emptyText}>No favorited pantries yet. Tap the star on any pantry to favorite it!</Text>
+                    )}
+                </View>
 
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Nearby Pantries</Text>
@@ -187,6 +221,10 @@ export default function HomeListScreen() {
                         permissionGranted={permissionGranted}
                     />
                 </View>
+
+                <TouchableOpacity style={styles.mapButton} onPress={() => router.push('/map')}>
+                    <Text style={styles.mapButtonText}>Full Map View</Text>
+                </TouchableOpacity>
 
             </ScrollView>
         </View>
@@ -244,16 +282,20 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     mapButton: {
+        position: 'absolute',
+        bottom: 35,
+        left: 27,
+        right: 27,
         backgroundColor: '#2e7d32',
         paddingVertical: 14,
-        borderRadius: 12,
+        borderRadius: 16,
         alignItems: 'center',
         marginBottom: 32,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.4,
         shadowRadius: 4,
-        elevation: 3,
+        elevation: 5,
     },
     mapButtonText: {
         color: '#ffffff',
@@ -268,6 +310,13 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#333',
         marginBottom: 12,
+        marginLeft: 4,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: '#757575',
+        fontStyle: 'italic',
+        marginBottom: 8,
         marginLeft: 4,
     },
     card: {
@@ -323,5 +372,6 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderWidth: 1,
         borderColor: '#e0e0e0',
+        position: 'relative',
     }
 });
