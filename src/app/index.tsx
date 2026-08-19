@@ -1,3 +1,4 @@
+import PantryMap from '@/components/PantryMap';
 import { supabase } from '@/lib/Supabase';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -179,6 +180,14 @@ export default function HomeListScreen() {
                     {nearbyPantries.map(renderPantryCard)}
                 </View>
 
+                <View style={styles.embeddedMapWrapper}>
+                    <PantryMap
+                        pantries={pantries as any}
+                        userLocation={location ? location.coords : null}
+                        permissionGranted={permissionGranted}
+                    />
+                </View>
+
             </ScrollView>
         </View>
     );
@@ -307,4 +316,12 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         textTransform: 'uppercase',
     },
+    embeddedMapWrapper: {
+        height: 300,
+        borderRadius: 16,
+        overflow: 'hidden',
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+    }
 });
