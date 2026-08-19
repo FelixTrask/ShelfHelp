@@ -131,7 +131,7 @@ export default function HomeScreen() {
         style={styles.backButton} 
         onPress={() => router.replace('/')}
       >
-        <Text style={styles.backButtonText}>⬅</Text>
+        <Text style={styles.backButtonText}>←</Text>
       </TouchableOpacity>
     </View>
   );
