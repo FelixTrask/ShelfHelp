@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Pantry = {
   id: string;
@@ -159,7 +159,8 @@ export default function HomeListScreen() {
             >
                 <View style={styles.cardHeader}>
                     <Text style={styles.cardTitle} numberOfLines={1}>
-                        {isFav ? '★ ' : ''}{pantry.name}
+                        <Text style={styles.favoriteIcon}>{isFav ? '★ ' : ''}</Text>
+                        <Text>{pantry.name}</Text>
                     </Text>
                 </View>
                 
@@ -194,7 +195,10 @@ export default function HomeListScreen() {
                 <View style={styles.headerBlock}>
                     <View style={styles.logoPlaceholder}>
                         {/* wip logo */}
-                        <Text style={styles.logo}>🥫</Text> 
+                        <Image 
+                           source={require('../components/Logo.png')} 
+                            style={styles.logoImage}
+                        /> 
                     </View>
                     <Text style={styles.mainTitle}>Shelf Help</Text>
                     <Text style={styles.subtitle}>Community Pantry Tracker</Text>
@@ -262,14 +266,16 @@ const styles = StyleSheet.create({
     logoPlaceholder: {
         width: 60,
         height: 60,
-        backgroundColor: '#e8f5e9',
+        backgroundColor: '#f8f9fa',
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 12,
     },
-    logo: {
-        fontSize: 32,
+    logoImage: {
+        width: 70,
+        height: 70,
+        resizeMode: 'contain',
+        marginBottom: 8,
     },
     mainTitle: {
         fontSize: 28,
@@ -318,6 +324,9 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
         marginBottom: 8,
         marginLeft: 4,
+    },
+    favoriteIcon: {
+        color: '#fbc53c',
     },
     card: {
         backgroundColor: '#ffffff',
