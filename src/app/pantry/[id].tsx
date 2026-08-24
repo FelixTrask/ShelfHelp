@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/Supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -10,14 +11,33 @@ type PantryDetail = {
     current_status: 'green' | 'orange' | 'red' | 'unknown';
 }
 
+const getStatus = (status: string | undefined) => {
+  switch (status) {
+    case 'green':
+      return { color: '#2e7d32', label: 'Stocked', bg: '#e8f5e9' };
+    case 'orange':
+      return { color: '#e65100', label: 'Low Stock', bg: '#fff3e0' };
+    case 'red':
+      return { color: '#c62828', label: 'Empty', bg: '#ffebee' };
+    default:
+      return { color: '#616161', label: 'Unknown', bg: '#f5f5f5' };
+  }
+};
+
+const FAVORITES_KEY = '@favorite_pantries';
+
 export default function PantryDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const [pantry, setPantry] = useState<PantryDetail | null>(null);
     const[loading, setLoading] = useState(true);
+    const[isFavorite, setIsFavorite] = useState(false);
 
     useEffect(() => {
-        if (id) fetchPantry();
+        if (id) {
+            fetchPantry();
+            checkIfFavorite();
+        }
     }, [id]);
 
     const fetchPantry = async () => {
@@ -34,6 +54,36 @@ export default function PantryDetailScreen() {
             console.error(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const checkIfFavorite = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            if (storedFavorites) {
+                const favoritesList: string[] = JSON.parse(storedFavorites);
+                setIsFavorite(favoritesList.includes(id as string));
+            }
+        } catch (error) {
+            console.error('Error checking favorites:', error);
+        }
+    };
+
+    const toggleFavorite = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            let favoritesList: string[] = storedFavorites ? JSON.parse(storedFavorites) : [];
+
+            if (isFavorite) {
+                favoritesList = favoritesList.filter((favID) => favID != id);
+            } else {
+                favoritesList.push(id as string);
+            }
+
+            await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favoritesList));
+            setIsFavorite(!isFavorite);
+        } catch (error) {
+            console.error('Error updating favorites:', error);
         }
     };
 
@@ -58,9 +108,16 @@ export default function PantryDetailScreen() {
         <View style={styles.card}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.title} numberOfLines={1}>
-                    {pantry?.name}
-                </Text>
+                <View style={styles.titleRow}>
+                    <Text style={styles.title} numberOfLines={1}>
+                        {pantry?.name}
+                    </Text>
+                    <TouchableOpacity onPress={toggleFavorite} style={styles.favoritesButton}>
+                        <Text style={[styles.starText, isFavorite && styles.starActive]}>
+                            {isFavorite ? '★' : '☆'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
                 <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
                     <Text style={styles.closeText}>✕</Text>
                 </TouchableOpacity>
@@ -73,8 +130,8 @@ export default function PantryDetailScreen() {
 
             <View style={styles.statusRow}>
                 <Text style={styles.statusLabel}>Status:</Text>
-                <Text style={[styles.statusValue, { color: getStatusColor(pantry?.current_status) }]}>
-                    {pantry?.current_status?.toUpperCase() ?? 'UNKNOWN'}
+                <Text style={[styles.statusValue, { color: getStatus(pantry?.current_status).color }]}>
+                    {getStatus(pantry?.current_status).label}
                 </Text>
             </View>
 
@@ -86,15 +143,6 @@ export default function PantryDetailScreen() {
     </View>
     );
 }
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'green': return '#2e7d32';
-    case 'orange': return '#e65100';
-    case 'red': return '#c62828';
-    default: return '#757575';
-  }
-};
 
 const styles = StyleSheet.create({
     overlay: {
@@ -120,6 +168,12 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 6,
+    },
+    titleRow: {
+        flexDirection: 'row',
+        flex: 1,
+        alignItems: 'center',
+        marginRight: 8,
     },
     title: {
         fontSize: 18,
@@ -181,4 +235,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#646464',
     },
+    favoritesButton: {
+        padding: 4,
+    },
+    starText: {
+        fontSize: 22,
+        color: '#b0bec5',
+    },
+    starActive: {
+        color: '#fbc53c'
+    }
 });

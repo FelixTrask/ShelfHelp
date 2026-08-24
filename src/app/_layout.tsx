@@ -16,7 +16,16 @@ export default function RootLayout() {
     >
       <Stack.Screen 
         name="index" 
-        options={{ title: 'Alexandria Pantries' }} />
+        options={{ 
+          title: 'ShelfHelp',
+          animation: 'slide_from_left',
+        }} />
+      <Stack.Screen 
+        name="map" 
+        options={{ 
+          title: 'Alexandria Pantries',
+          animation: 'slide_from_right',
+        }} />
       <Stack.Screen 
         name="pantry/[id]" 
         options={{ 
