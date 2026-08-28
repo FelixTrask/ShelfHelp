@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/Supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type PantryDetail = {
@@ -33,12 +33,14 @@ export default function PantryDetailScreen() {
     const[loading, setLoading] = useState(true);
     const[isFavorite, setIsFavorite] = useState(false);
 
-    useEffect(() => {
-        if (id) {
+    useFocusEffect(
+        useCallback(() => {
+            if (id) {
             fetchPantry();
             checkIfFavorite();
-        }
-    }, [id]);
+            }
+        }, [id])
+    );
 
     const fetchPantry = async () => {
         try {
@@ -141,6 +143,7 @@ export default function PantryDetailScreen() {
                     router.push({
                         pathname: '/report-status',
                         params: {
+                            pantryId: pantry.id,
                             pantryName: pantry.name,
                             currentStatus: getStatus(pantry.current_status).label,
                         },

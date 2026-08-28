@@ -1,24 +1,35 @@
-import { useState } from 'react';
+import { supabase } from '@/lib/Supabase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const getStatusStyle = (status: string) => {
   switch (status) {
     case 'Stocked':
+    case 'green':
       return { color: '#2e7d32', backgroundColor: '#e8f5e9' };
     case 'Almost Empty':
     case 'Low Stock':
+    case 'orange':
       return { color: '#e65100', backgroundColor: '#fff3e0' };
     case 'Empty':
+    case 'red':
       return { color: '#c62828', backgroundColor: '#ffebee' };
     default:
       return { color: '#616161', backgroundColor: '#f5f5f5' };
   }
 };
 
+const STATUS_TO_DB_VALUE: Record<string, 'green' | 'orange' | 'red'> = {
+  "Stocked": 'green',
+  "Almost Empty": 'orange',
+  "Empty": 'red'
+};
+
 export default function ReportStatus() {
   const router = useRouter();
-  const { pantryName: pantryNameParam, currentStatus: currentStatusParam } = useLocalSearchParams<{
+  const { pantryId, pantryName: pantryNameParam, currentStatus: currentStatusParam } = useLocalSearchParams<{
+    pantryId?: string;
     pantryName?: string;
     currentStatus?: string;
   }>();
@@ -27,6 +38,31 @@ export default function ReportStatus() {
   const currentStatusStyle = getStatusStyle(currentStatus);
 
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!selectedStatus) return;
+    if (!pantryId) {
+      Alert.alert('Error', 'Pantry ID is missing. Cannot submit update.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('pantries')
+        .update({ current_status: STATUS_TO_DB_VALUE[selectedStatus] })
+        .eq('id', pantryId);
+
+      if (error) throw error;
+      router.back();
+    } catch (error: any) {
+      Alert.alert('Submission Error', error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -87,11 +123,15 @@ export default function ReportStatus() {
 
       <Pressable
         accessibilityRole="button"
-        disabled={!selectedStatus}
-        style={[styles.submitButton, !selectedStatus && styles.submitButtonDisabled]}
-        onPress={() => router.back()}
+        disabled={!selectedStatus || submitting}
+        style={[styles.submitButton, (!selectedStatus || submitting) && styles.submitButtonDisabled]}
+        onPress={handleSubmit}
       >
-        <Text style={styles.submitButtonText}>Submit report</Text>
+        {submitting ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <Text style={styles.submitButtonText}>Submit report</Text>
+        )}
       </Pressable>
     </View>
   );
