@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/Supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type PantryDetail = {
@@ -33,12 +33,14 @@ export default function PantryDetailScreen() {
     const[loading, setLoading] = useState(true);
     const[isFavorite, setIsFavorite] = useState(false);
 
-    useEffect(() => {
-        if (id) {
+    useFocusEffect(
+        useCallback(() => {
+            if (id) {
             fetchPantry();
             checkIfFavorite();
-        }
-    }, [id]);
+            }
+        }, [id])
+    );
 
     const fetchPantry = async () => {
         try {
@@ -135,9 +137,24 @@ export default function PantryDetailScreen() {
                 </Text>
             </View>
 
-            {/* Compact Action Button */}
-            <TouchableOpacity style={styles.doneButton} onPress={() => router.back()}>
-                <Text style={styles.doneButtonText}>Close</Text>
+            <TouchableOpacity
+                style={styles.reportButton}
+                onPress={() =>
+                    router.push({
+                        pathname: '/report-status',
+                        params: {
+                            pantryId: pantry.id,
+                            pantryName: pantry.name,
+                            currentStatus: getStatus(pantry.current_status).label,
+                        },
+                    })
+                }
+            >
+                <Text style={styles.doneButtonText}>Report status</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.closeActionButton} onPress={() => router.back()}>
+                <Text style={styles.closeActionButtonText}>Close</Text>
             </TouchableOpacity>
         </View>
     </View>
@@ -215,7 +232,7 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '700',
     },
-    doneButton: {
+    reportButton: {
         backgroundColor: '#2e7d32',
         paddingVertical: 10,
         borderRadius: 8,
@@ -225,6 +242,19 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontWeight: '600',
         fontSize: 14,
+    },
+    closeActionButton: {
+        alignItems: 'center',
+        borderColor: '#d5ddd6',
+        borderRadius: 8,
+        borderWidth: 1,
+        marginTop: 10,
+        paddingVertical: 10,
+    },
+    closeActionButtonText: {
+        color: '#36523b',
+        fontSize: 14,
+        fontWeight: '600',
     },
     centered: {
         flex: 1,
