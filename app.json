@@ -43,6 +43,12 @@
           "icon": "./assets/icon.png",
           "color": "#2e7d32"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermissionMessage": "Allow ShelfHelp to access your camera to take a verification photo of the pantry shelf."
+        }
       ]
     ],
     "experiments": {

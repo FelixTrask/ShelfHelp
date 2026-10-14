@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/Supabase';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const getStatusStyle = (status: string) => {
   switch (status) {
@@ -38,8 +39,27 @@ export default function ReportStatus() {
   const currentStatusStyle = getStatusStyle(currentStatus);
 
   const [selectedStatus, setSelectedStatus] = useState('');
-
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Denied', 'Camera access is required to take a photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0].uri) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedStatus) return;
@@ -48,14 +68,44 @@ export default function ReportStatus() {
       return;
     }
 
+    if(!photoUri) {
+      Alert.alert('Error', 'Please take a verification photo before submitting.');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('pantries')
-        .update({ current_status: STATUS_TO_DB_VALUE[selectedStatus] })
-        .eq('id', pantryId);
+      const response = await fetch(photoUri);
+      const blob = await response.blob();
+      const fileName = `pantry_${pantryId}_${Date.now()}.jpg`;
 
-      if (error) throw error;
+      const { error: uploadError } = await supabase.storage
+        .from('pantry-photos')
+        .upload(fileName, blob);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('pantry-photos')
+        .getPublicUrl(fileName);
+
+      const photoUrl = publicUrlData.publicUrl;
+
+      const { error: reportError } = await supabase
+        .from('pantries')
+        .insert({
+          pantry_id: pantryId,
+          reported_status: STATUS_TO_DB_VALUE[selectedStatus],
+          photo_url: photoUrl,
+          status: 'pending',
+        });
+
+      if  (reportError) throw reportError;
+
+      Alert.alert(
+        'Submitted for Review',
+        'Thank you for your report! It will be reviewed by our team shortly. Once reviewed, the pantry status will update automatically.'
+      );
       router.back();
     } catch (error: any) {
       Alert.alert('Submission Error', error.message);
@@ -85,6 +135,39 @@ export default function ReportStatus() {
         </View>
         <Text style={styles.lastUpdated}>You can help keep this information current.</Text>
       </View>
+
+      <Text style={styles.question}>1. Take Verification Photo</Text>
+      <View style={styles.privacyWarningBox}>
+        <Text style={styles.privacyWarningText}>
+          🔒 Privacy Notice: Photos must be strictly of the pantry shelf. Never take photos of people.
+        </Text>
+      </View>
+
+      {photoUri ? (
+        <View style={styles.photoPreviewContainer}>
+          <Image source={{ uri: photoUri }} style={styles.photoPreview} />
+          <Pressable style={styles.retakeButton} onPress={takePhoto}>
+            <Text style={styles.retakeButtonText}>Retake Photo</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable style={styles.cameraButton} onPress={takePhoto}>
+          <Text style={styles.cameraButtonText}>Take Photo</Text>
+        </Pressable>
+      )}
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={!selectedStatus || !photoUri || submitting}
+        style={[styles.submitButton, (!selectedStatus || !photoUri || submitting) && styles.submitButtonDisabled]}
+        onPress={handleSubmit}
+      >
+        {submitting ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <Text style={styles.submitButtonText}>Submit for Approval</Text>
+        )}
+      </Pressable>
 
       <Text style={styles.question}>How stocked is this pantry right now?</Text>
       <Text style={styles.helperText}>Choose the option that best matches what you see.</Text>
@@ -130,7 +213,7 @@ export default function ReportStatus() {
         {submitting ? (
           <ActivityIndicator color="#ffffff" />
         ) : (
-          <Text style={styles.submitButtonText}>Submit report</Text>
+          <Text style={styles.submitButtonText}>Submit for Approval</Text>
         )}
       </Pressable>
     </View>
@@ -203,7 +286,7 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 16,
   },
   helperText: {
     color: '#666',
@@ -269,6 +352,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2e7d32',
     borderRadius: 12,
     marginTop: 'auto',
+    marginBottom: 16,
     minHeight: 54,
     justifyContent: 'center',
   },
@@ -280,4 +364,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
+  privacyWarningBox: {
+    backgroundColor: '#fff3e0',
+    borderColor: '#ffeeba',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 4,
+  },
+  privacyWarningText: {
+    color: '#856404',
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  cameraButton: {
+    backgroundColor: '#e0e0e0',
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderStyle: 'dashed',
+  },
+  cameraButtonText: {
+    color: '#333',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  photoPreviewContainer: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  photoPreview: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  retakeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#6c757d',
+    borderRadius: 6,
+  },
+  retakeButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  }
 });

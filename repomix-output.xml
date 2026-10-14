@@ -1,0 +1,2627 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+assets/
+  expo.icon/
+    Assets/
+      expo-symbol 2.svg
+      grid.png
+    icon.json
+  images/
+    tabIcons/
+      home.png
+      home@2x.png
+      home@3x.png
+    favicon.png
+    icon.png
+scripts/
+  reset-project.js
+src/
+  app/
+    pantry/
+      [id].tsx
+    _layout.tsx
+    index.tsx
+    map.tsx
+    report-status.tsx
+  components/
+    Logo.png
+    PantryMap.tsx
+  constants/
+    theme.ts
+  hooks/
+    use-color-scheme.ts
+    use-color-scheme.web.ts
+    use-theme.ts
+  lib/
+    notifications.ts
+    Supabase.tsx
+  global.css
+supabase/
+  functions/
+    notify-status-change/
+      .npmrc
+      deno.json
+      index.ts
+  .gitignore
+  config.toml
+.env.example
+.gitignore
+app.json
+LICENSE
+package.json
+README.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="assets/expo.icon/Assets/expo-symbol 2.svg">
+<svg width="652" height="606" viewBox="0 0 652 606" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M353.554 0H298.446C273.006 0 249.684 14.6347 237.962 37.9539L4.37994 502.646C-1.04325 513.435 -1.45067 526.178 3.2716 537.313L22.6123 582.918C34.6475 611.297 72.5404 614.156 88.4414 587.885L309.863 222.063C313.34 216.317 319.439 212.826 326 212.826C332.561 212.826 338.659 216.317 342.137 222.063L563.559 587.885C579.46 614.156 617.352 611.297 629.388 582.918L648.728 537.313C653.451 526.178 653.043 513.435 647.62 502.646L414.038 37.9539C402.316 14.6347 378.994 0 353.554 0Z" fill="white"/>
+</svg>
+</file>
+
+<file path="assets/expo.icon/icon.json">
+{
+  "fill" : {
+    "automatic-gradient" : "extended-srgb:0.00000,0.47843,1.00000,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "image-name" : "expo-symbol 2.svg",
+          "name" : "expo-symbol 2",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              1.1008400065293245e-05,
+              -16.046875
+            ]
+          }
+        },
+        {
+          "image-name" : "grid.png",
+          "name" : "grid"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
+</file>
+
+<file path="scripts/reset-project.js">
+#!/usr/bin/env node
+
+/**
+ * This script is used to reset the project to a blank state.
+ * It deletes or moves the /src and /scripts directories to /example based on user input and creates a new /src/app directory with an index.tsx and _layout.tsx file.
+ * You can remove the `reset-project` script from package.json and safely delete this file after running it.
+ */
+
+const fs = require("fs");
+const path = require("path");
+const readline = require("readline");
+
+const root = process.cwd();
+const oldDirs = ["src", "scripts"];
+const exampleDir = "example";
+const newAppDir = "src/app";
+const exampleDirPath = path.join(root, exampleDir);
+
+const indexContent = `import { Text, View, StyleSheet } from "react-native";
+
+export default function Index() {
+  return (
+    <View style={styles.container}>
+      <Text>Edit src/app/index.tsx to edit this screen.</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+`;
+
+const layoutContent = `import { Stack } from "expo-router";
+
+export default function RootLayout() {
+  return <Stack />;
+}
+`;
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+const moveDirectories = async (userInput) => {
+  try {
+    if (userInput === "y") {
+      // Create the app-example directory
+      await fs.promises.mkdir(exampleDirPath, { recursive: true });
+      console.log(`📁 /${exampleDir} directory created.`);
+    }
+
+    // Move old directories to new app-example directory or delete them
+    for (const dir of oldDirs) {
+      const oldDirPath = path.join(root, dir);
+      if (fs.existsSync(oldDirPath)) {
+        if (userInput === "y") {
+          const newDirPath = path.join(root, exampleDir, dir);
+          await fs.promises.rename(oldDirPath, newDirPath);
+          console.log(`➡️ /${dir} moved to /${exampleDir}/${dir}.`);
+        } else {
+          await fs.promises.rm(oldDirPath, { recursive: true, force: true });
+          console.log(`❌ /${dir} deleted.`);
+        }
+      } else {
+        console.log(`➡️ /${dir} does not exist, skipping.`);
+      }
+    }
+
+    // Create new /src/app directory
+    const newAppDirPath = path.join(root, newAppDir);
+    await fs.promises.mkdir(newAppDirPath, { recursive: true });
+    console.log("\n📁 New /src/app directory created.");
+
+    // Create index.tsx
+    const indexPath = path.join(newAppDirPath, "index.tsx");
+    await fs.promises.writeFile(indexPath, indexContent);
+    console.log("📄 src/app/index.tsx created.");
+
+    // Create _layout.tsx
+    const layoutPath = path.join(newAppDirPath, "_layout.tsx");
+    await fs.promises.writeFile(layoutPath, layoutContent);
+    console.log("📄 src/app/_layout.tsx created.");
+
+    console.log("\n✅ Project reset complete. Next steps:");
+    console.log(
+      `1. Run \`npx expo start\` to start a development server.\n2. Edit src/app/index.tsx to edit the main screen.\n3. Put all your application code in /src, only screens and layout files should be in /src/app.${
+        userInput === "y"
+          ? `\n4. Delete the /${exampleDir} directory when you're done referencing it.`
+          : ""
+      }`
+    );
+  } catch (error) {
+    console.error(`❌ Error during script execution: ${error.message}`);
+  }
+};
+
+rl.question(
+  "Do you want to move existing files to /example instead of deleting them? (Y/n): ",
+  (answer) => {
+    const userInput = answer.trim().toLowerCase() || "y";
+    if (userInput === "y" || userInput === "n") {
+      moveDirectories(userInput).finally(() => rl.close());
+    } else {
+      console.log("❌ Invalid input. Please enter 'Y' or 'N'.");
+      rl.close();
+    }
+  }
+);
+</file>
+
+<file path="src/components/PantryMap.tsx">
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import MapView, { Callout, Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+
+type Pantry = {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  current_status: 'green' | 'orange' | 'red' | 'unknown';
+  lastStatusTime: number;
+};
+
+type PantryMapProps = {
+  pantries: Pantry[];
+  userLocation?: { latitude: number; longitude: number } | null;
+  permissionGranted: boolean;
+  style?: ViewStyle;
+};
+
+const getStatusConfig = (status: string) => {
+    switch (status) {
+        case 'green':
+            return { color: '#2e7d32', label: 'Stocked', bg: '#e8f5e9', pinColor: 'green' };
+        case 'orange':
+            return { color: '#e65100', label: 'Low Stock', bg: '#fff3e0', pinColor: 'orange' };
+        case 'red':
+            return { color: '#c62828', label: 'Empty', bg: '#ffebee', pinColor: 'red' };
+        default:
+            return { color: '#616161', label: 'Unknown', bg: '#f5f5f5', pinColor: 'gray' };
+    }
+};
+
+export default function PantryMap({
+    pantries,
+    userLocation,
+    permissionGranted,
+    style,
+}: PantryMapProps) {
+    const router = useRouter();
+
+    const initialRegion = {
+        latitude: userLocation ? userLocation.latitude : 38.8048,
+        longitude: userLocation ? userLocation.longitude : -77.0469,
+        latitudeDelta: 0.08,
+        longitudeDelta: 0.08,
+    };
+
+    return (
+        <View style={[styles.mapContainer, style]}>
+            <MapView
+                provider={PROVIDER_DEFAULT}
+                style={styles.map}
+                showsUserLocation={permissionGranted}
+                showsMyLocationButton={permissionGranted}
+                initialRegion={initialRegion}
+            >
+                {pantries.map((pantry) => {
+                    const status = getStatusConfig(pantry.current_status);
+                    return (
+                        <Marker
+                            key={pantry.id}
+                            coordinate={{
+                                latitude: Number(pantry.latitude),
+                                longitude: Number(pantry.longitude),
+                            }}
+                            pinColor={status.pinColor}
+                        >
+                          <Callout tooltip onPress={() => router.push(`/pantry/${pantry.id}` as any)}>
+                                <View style={styles.calloutContainer}>
+                                <View style={styles.headerRow}>
+                                    <Text style={styles.calloutTitle} numberOfLines={1}>
+                                    {pantry.name}
+                                    </Text>
+                                    <View style={[styles.badge, { backgroundColor: status.bg }]}>
+                                    <Text style={[styles.badgeText, { color: status.color }]}>
+                                        {status.label}
+                                    </Text>
+                                    </View>
+                                </View>
+
+                                <Text style={styles.calloutAddress} numberOfLines={2}>
+                                    {pantry.address}
+                                </Text>
+
+                                <Text style={styles.actionPrompt}>Tap to view details →</Text>
+                                </View>
+                            </Callout>  
+                        </Marker>
+                    );
+                })}
+            </MapView>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    mapContainer: {
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+    },
+    map: {
+        width: '100%',
+        height: '100%',
+    },
+    calloutContainer: {
+        width: 220,
+        backgroundColor: '#ffffff',
+        borderRadius: 12,
+        padding: 12,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    calloutTitle: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        color: '#222',
+        flex: 1,
+        marginRight: 6,
+    },
+    calloutAddress: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 8,
+    },
+    actionPrompt: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#2e7d32',
+    },
+    badge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    badgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+    },
+});
+</file>
+
+<file path="src/constants/theme.ts">
+/**
+ * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
+ * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ */
+
+import '@/global.css';
+
+import { Platform } from 'react-native';
+
+export const Colors = {
+  light: {
+    text: '#000000',
+    background: '#ffffff',
+    backgroundElement: '#F0F0F3',
+    backgroundSelected: '#E0E1E6',
+    textSecondary: '#60646C',
+  },
+  dark: {
+    text: '#ffffff',
+    background: '#000000',
+    backgroundElement: '#212225',
+    backgroundSelected: '#2E3135',
+    textSecondary: '#B0B4BA',
+  },
+} as const;
+
+export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+
+export const Fonts = Platform.select({
+  ios: {
+    /** iOS `UIFontDescriptorSystemDesignDefault` */
+    sans: 'system-ui',
+    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    serif: 'ui-serif',
+    /** iOS `UIFontDescriptorSystemDesignRounded` */
+    rounded: 'ui-rounded',
+    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    mono: 'ui-monospace',
+  },
+  default: {
+    sans: 'normal',
+    serif: 'serif',
+    rounded: 'normal',
+    mono: 'monospace',
+  },
+  web: {
+    sans: 'var(--font-display)',
+    serif: 'var(--font-serif)',
+    rounded: 'var(--font-rounded)',
+    mono: 'var(--font-mono)',
+  },
+});
+
+export const Spacing = {
+  half: 2,
+  one: 4,
+  two: 8,
+  three: 16,
+  four: 24,
+  five: 32,
+  six: 64,
+} as const;
+
+export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const MaxContentWidth = 800;
+</file>
+
+<file path="src/hooks/use-color-scheme.ts">
+export { useColorScheme } from 'react-native';
+</file>
+
+<file path="src/hooks/use-color-scheme.web.ts">
+import { useEffect, useState } from 'react';
+import { useColorScheme as useRNColorScheme } from 'react-native';
+
+/**
+ * To support static rendering, this value needs to be re-calculated on the client side for web
+ */
+export function useColorScheme() {
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  const colorScheme = useRNColorScheme();
+
+  if (hasHydrated) {
+    return colorScheme;
+  }
+
+  return 'light';
+}
+</file>
+
+<file path="src/hooks/use-theme.ts">
+/**
+ * Learn more about light and dark modes:
+ * https://docs.expo.dev/guides/color-schemes/
+ */
+
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+
+export function useTheme() {
+  const scheme = useColorScheme();
+  const theme = scheme === 'unspecified' ? 'light' : scheme;
+
+  return Colors[theme];
+}
+</file>
+
+<file path="src/lib/notifications.ts">
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+});
+
+export async function requestForPushNotificationsAsync(): Promise<string | null> {
+    if (!Device.isDevice) {
+        console.log('Push notifications require a physical device');
+        return null;
+    }
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+        console.log('Failed to get push token for push notification!');
+        return null;
+    }
+
+    const tokenData = await Notifications.getExpoPushTokenAsync();
+    const token = tokenData.data;
+
+    if (Platform.OS === 'android') {
+        Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.MAX,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#2e7d32',
+        });
+    }
+
+    return token;
+}
+</file>
+
+<file path="src/lib/Supabase.tsx">
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { createClient } from '@supabase/supabase-js'
+import { AppState, Platform } from 'react-native'
+import 'react-native-url-polyfill/auto'
+
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!
+const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+  auth: {
+    ...(Platform.OS !== 'web' ? { storage: AsyncStorage } : {}),
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+})
+
+// Tells Supabase Auth to continuously refresh the session automatically
+// if the app is in the foreground. When this is added, you will continue
+// to receive `onAuthStateChange` events with the `TOKEN_REFRESHED` or
+// `SIGNED_OUT` event if the user's session is terminated. This should
+// only be registered once.
+if (Platform.OS !== 'web') {
+  AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh()
+    } else {
+      supabase.auth.stopAutoRefresh()
+    }
+  })
+}
+</file>
+
+<file path="src/global.css">
+:root {
+  --font-display:
+    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+    Segoe UI Symbol, Noto Color Emoji;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+}
+</file>
+
+<file path="supabase/functions/notify-status-change/.npmrc">
+# Configuration for private npm package dependencies
+# For more information on using private registries with Edge Functions, see:
+# https://supabase.com/docs/guides/functions/import-maps#importing-from-private-registries
+</file>
+
+<file path="supabase/functions/notify-status-change/deno.json">
+{
+  "imports": {
+    "@supabase/functions-js": "jsr:@supabase/functions-js@^2",
+    "@supabase/server": "npm:@supabase/server@^1"
+  }
+}
+</file>
+
+<file path="supabase/.gitignore">
+# Supabase
+.branches
+.temp
+
+# dotenvx
+.env.keys
+.env.local
+.env.*.local
+</file>
+
+<file path="supabase/config.toml">
+# For detailed configuration reference documentation, visit:
+# https://supabase.com/docs/guides/local-development/cli/config
+# A string used to distinguish different Supabase projects on the same host. Defaults to the
+# working directory name when running `supabase init`.
+project_id = "ShelfHelp"
+
+[api]
+enabled = true
+# Port to use for the API URL.
+port = 54321
+# Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
+# endpoints. `public` and `graphql_public` schemas are included by default.
+schemas = ["public", "graphql_public"]
+# Extra schemas to add to the search_path of every request.
+extra_search_path = ["public", "extensions"]
+# The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
+# for accidental or malicious requests.
+max_rows = 1000
+# Controls whether new tables, views, sequences and functions created in the `public` schema by
+# `postgres` are reachable through the Data API roles (`anon`, `authenticated`, `service_role`)
+# without explicit GRANTs, matching the cloud default. Set to `false` to require explicit GRANTs
+# instead. Left unset, a fresh project falls back to `true`.
+# auto_expose_new_tables = true
+
+[api.tls]
+# Enable HTTPS endpoints locally using a self-signed certificate.
+enabled = false
+# Paths to self-signed certificate pair.
+# cert_path = "../certs/my-cert.pem"
+# key_path = "../certs/my-key.pem"
+
+[db]
+# Port to use for the local database URL.
+port = 54322
+# Port used by db diff command to initialize the shadow database.
+shadow_port = 54320
+# Maximum amount of time to wait for health check when starting the local database.
+health_timeout = "2m"
+# The database major version to use. This has to be the same as your remote database's. Run `SHOW
+# server_version;` on the remote database to check.
+major_version = 17
+
+[db.pooler]
+enabled = false
+# Port to use for the local connection pooler.
+port = 54329
+# Specifies when a server connection can be reused by other clients.
+# Configure one of the supported pooler modes: `transaction`, `session`.
+pool_mode = "transaction"
+# How many server connections to allow per user/database pair.
+default_pool_size = 20
+# Maximum number of client connections allowed.
+max_client_conn = 100
+
+# [db.vault]
+# secret_key = "env(SECRET_VALUE)"
+
+[db.migrations]
+# If disabled, migrations will be skipped during a db push or reset.
+enabled = true
+# Specifies an ordered list of schema files, directories, or glob patterns that describe your database.
+# Supports paths relative to supabase directory: "./schemas/*.sql", "./database".
+schema_paths = []
+
+[db.seed]
+# If enabled, seeds the database after migrations during a db reset.
+enabled = true
+# Specifies an ordered list of seed files to load during db reset.
+# Supports glob patterns relative to supabase directory: "./seeds/*.sql"
+sql_paths = ["./seed.sql"]
+
+[db.network_restrictions]
+# Enable management of network restrictions.
+enabled = false
+# List of IPv4 CIDR blocks allowed to connect to the database.
+# Defaults to allow all IPv4 connections. Set empty array to block all IPs.
+allowed_cidrs = ["0.0.0.0/0"]
+# List of IPv6 CIDR blocks allowed to connect to the database.
+# Defaults to allow all IPv6 connections. Set empty array to block all IPs.
+allowed_cidrs_v6 = ["::/0"]
+
+# Uncomment to reject non-secure connections to the database.
+# [db.ssl_enforcement]
+# enabled = true
+
+[realtime]
+enabled = true
+# Bind realtime via either IPv4 or IPv6. (default: IPv4)
+# ip_version = "IPv6"
+# The maximum length in bytes of HTTP request headers. (default: 4096)
+# max_header_length = 4096
+
+[studio]
+enabled = true
+# Port to use for Supabase Studio.
+port = 54323
+# External URL of the API server that frontend connects to.
+api_url = "http://127.0.0.1"
+# OpenAI API Key to use for Supabase AI in the Supabase Studio.
+openai_api_key = "env(OPENAI_API_KEY)"
+
+# Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
+# are monitored, and you can view the emails that would have been sent from the web interface.
+[local_smtp]
+enabled = true
+# Port to use for the email testing server web interface.
+port = 54324
+# Uncomment to expose additional ports for testing user applications that send emails.
+# smtp_port = 54325
+# pop3_port = 54326
+# admin_email = "admin@email.com"
+# sender_name = "Admin"
+
+[storage]
+enabled = true
+# The maximum file size allowed (e.g. "5MB", "500KB").
+file_size_limit = "50MiB"
+
+# Uncomment to configure local storage buckets
+# [storage.buckets.images]
+# public = false
+# file_size_limit = "50MiB"
+# allowed_mime_types = ["image/png", "image/jpeg"]
+# objects_path = "./images"
+
+# Allow connections via S3 compatible clients
+[storage.s3_protocol]
+enabled = true
+
+# Image transformation API is available to Supabase Pro plan.
+# [storage.image_transformation]
+# enabled = true
+
+# Store analytical data in S3 for running ETL jobs over Iceberg Catalog
+# This feature is only available on the hosted platform.
+[storage.analytics]
+enabled = false
+max_namespaces = 5
+max_tables = 10
+max_catalogs = 2
+
+# Analytics Buckets is available to Supabase Pro plan.
+# [storage.analytics.buckets.my-warehouse]
+
+# Store vector embeddings in S3 for large and durable datasets
+[storage.vector]
+enabled = true
+max_buckets = 10
+max_indexes = 5
+
+# Vector Buckets is available to Supabase Pro plan.
+# [storage.vector.buckets.documents-openai]
+
+[auth]
+enabled = true
+# The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
+# in emails.
+site_url = "http://127.0.0.1:3000"
+# The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
+# external_url = ""
+# A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
+additional_redirect_urls = ["https://127.0.0.1:3000"]
+# How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
+jwt_expiry = 3600
+# JWT issuer URL. If not set, defaults to auth.external_url.
+# jwt_issuer = ""
+# Path to JWT signing key. DO NOT commit your signing keys file to git.
+# signing_keys_path = "./signing_keys.json"
+# If disabled, the refresh token will never expire.
+enable_refresh_token_rotation = true
+# Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
+# Requires enable_refresh_token_rotation = true.
+refresh_token_reuse_interval = 10
+# Allow/disallow new user signups to your project.
+enable_signup = true
+# Allow/disallow anonymous sign-ins to your project.
+enable_anonymous_sign_ins = false
+# Allow/disallow testing manual linking of accounts
+enable_manual_linking = false
+# Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
+minimum_password_length = 6
+# Passwords that do not meet the following requirements will be rejected as weak. Supported values
+# are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
+password_requirements = ""
+
+# Configure passkey sign-ins.
+# [auth.passkey]
+# enabled = false
+
+# Configure WebAuthn relying party settings (required when passkey is enabled).
+# [auth.webauthn]
+# rp_display_name = "Supabase"
+# rp_id = "localhost"
+# rp_origins = ["http://127.0.0.1:3000"]
+
+[auth.rate_limit]
+# Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
+email_sent = 2
+# Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
+sms_sent = 30
+# Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
+anonymous_users = 30
+# Number of sessions that can be refreshed in a 5 minute interval per IP address.
+token_refresh = 150
+# Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
+sign_in_sign_ups = 30
+# Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
+token_verifications = 30
+# Number of Web3 logins that can be made in a 5 minute interval per IP address.
+web3 = 30
+
+# Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
+# [auth.captcha]
+# enabled = true
+# provider = "hcaptcha"
+# secret = ""
+
+[auth.email]
+# Allow/disallow new user signups via email to your project.
+enable_signup = true
+# If enabled, a user will be required to confirm any email change on both the old, and new email
+# addresses. If disabled, only the new email is required to confirm.
+double_confirm_changes = true
+# If enabled, users need to confirm their email address before signing in.
+enable_confirmations = false
+# If enabled, users will need to reauthenticate or have logged in recently to change their password.
+secure_password_change = false
+# Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
+max_frequency = "1s"
+# Number of characters used in the email OTP.
+otp_length = 6
+# Number of seconds before the email OTP expires (defaults to 1 hour).
+otp_expiry = 3600
+
+# Use a production-ready SMTP server
+# [auth.email.smtp]
+# enabled = true
+# host = "smtp.sendgrid.net"
+# port = 587
+# user = "apikey"
+# pass = "env(SENDGRID_API_KEY)"
+# admin_email = "admin@email.com"
+# sender_name = "Admin"
+
+# Uncomment to customize email template
+# [auth.email.template.invite]
+# subject = "You have been invited"
+# content_path = "./supabase/templates/invite.html"
+
+# Uncomment to customize notification email template
+# [auth.email.notification.password_changed]
+# enabled = true
+# subject = "Your password has been changed"
+# content_path = "./supabase/templates/password_changed_notification.html"
+
+[auth.sms]
+# Allow/disallow new user signups via SMS to your project.
+enable_signup = false
+# If enabled, users need to confirm their phone number before signing in.
+enable_confirmations = false
+# Template for sending OTP to users
+template = "Your code is {{ .Code }}"
+# Controls the minimum amount of time that must pass before sending another sms otp.
+max_frequency = "5s"
+
+# Use pre-defined map of phone number to OTP for testing.
+# [auth.sms.test_otp]
+# 4152127777 = "123456"
+
+# Configure logged in session timeouts.
+# [auth.sessions]
+# Force log out after the specified duration.
+# timebox = "24h"
+# Force log out if the user has been inactive longer than the specified duration.
+# inactivity_timeout = "8h"
+
+# This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
+# [auth.hook.before_user_created]
+# enabled = true
+# uri = "pg-functions://postgres/auth/before-user-created-hook"
+
+# This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
+# [auth.hook.custom_access_token]
+# enabled = true
+# uri = "pg-functions://<database>/<schema>/<hook_name>"
+
+# Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+[auth.sms.twilio]
+enabled = false
+account_sid = ""
+message_service_sid = ""
+# DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
+auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
+
+# Multi-factor-authentication is available to Supabase Pro plan.
+[auth.mfa]
+# Control how many MFA factors can be enrolled at once per user.
+max_enrolled_factors = 10
+
+# Control MFA via App Authenticator (TOTP)
+[auth.mfa.totp]
+enroll_enabled = false
+verify_enabled = false
+
+# Configure MFA via Phone Messaging
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+otp_length = 6
+template = "Your code is {{ .Code }}"
+max_frequency = "5s"
+
+# Configure MFA via WebAuthn
+# [auth.mfa.web_authn]
+# enroll_enabled = true
+# verify_enabled = true
+
+# Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
+# `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
+# `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
+[auth.external.apple]
+enabled = false
+client_id = ""
+# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
+secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
+# Overrides the default auth callback URL derived from auth.external_url.
+redirect_uri = ""
+# Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
+# or any other third-party OIDC providers.
+url = ""
+# If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
+skip_nonce_check = false
+# If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
+email_optional = false
+
+# Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
+# You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
+[auth.web3.solana]
+enabled = false
+
+# Use Firebase Auth as a third-party provider alongside Supabase Auth.
+[auth.third_party.firebase]
+enabled = false
+# project_id = "my-firebase-project"
+
+# Use Auth0 as a third-party provider alongside Supabase Auth.
+[auth.third_party.auth0]
+enabled = false
+# tenant = "my-auth0-tenant"
+# tenant_region = "us"
+
+# Use AWS Cognito (Amplify) as a third-party provider alongside Supabase Auth.
+[auth.third_party.aws_cognito]
+enabled = false
+# user_pool_id = "my-user-pool-id"
+# user_pool_region = "us-east-1"
+
+# Use Clerk as a third-party provider alongside Supabase Auth.
+[auth.third_party.clerk]
+enabled = false
+# Obtain from https://clerk.com/setup/supabase
+# domain = "example.clerk.accounts.dev"
+
+# OAuth server configuration
+[auth.oauth_server]
+# Enable OAuth server functionality
+enabled = false
+# Path for OAuth consent flow UI
+authorization_url_path = "/oauth/consent"
+# Allow dynamic client registration
+allow_dynamic_registration = false
+
+[edge_runtime]
+enabled = true
+# Supported request policies: `oneshot`, `per_worker`.
+# `per_worker` (default) — enables hot reload during local development.
+# `oneshot` — fallback mode if hot reload causes issues (e.g. in large repos or with symlinks).
+policy = "per_worker"
+# Port to attach the Chrome inspector for debugging edge functions.
+inspector_port = 8083
+# The Deno major version to use.
+deno_version = 2
+
+# [edge_runtime.secrets]
+# secret_key = "env(SECRET_VALUE)"
+
+[analytics]
+enabled = true
+port = 54327
+# Configure one of the supported backends: `postgres`, `bigquery`.
+backend = "postgres"
+
+# Experimental features may be deprecated any time
+[experimental]
+# Configures Postgres storage engine to use OrioleDB (S3)
+orioledb_version = ""
+# Configures S3 bucket URL, eg. <bucket_name>.s3-<region>.amazonaws.com
+s3_host = "env(S3_HOST)"
+# Configures S3 bucket region, eg. us-east-1
+s3_region = "env(S3_REGION)"
+# Configures AWS_ACCESS_KEY_ID for S3 bucket
+s3_access_key = "env(S3_ACCESS_KEY)"
+# Configures AWS_SECRET_ACCESS_KEY for S3 bucket
+s3_secret_key = "env(S3_SECRET_KEY)"
+
+# pg-delta is the schema diff engine for db diff / db pull / db remote commit.
+# Set enabled = false to fall back to the legacy migra engine.
+[experimental.pgdelta]
+enabled = true
+# Directory under `supabase/` where declarative files are written.
+# declarative_schema_path = "./schemas"
+# JSON string passed through to pg-delta SQL formatting. When omitted, SQL is
+# formatted with uppercase keywords, indent 2, max width 180, trailing commas,
+# and column/key alignment. Set to "null" to emit raw, unformatted SQL.
+# format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+[functions.notify-status-change]
+enabled = true
+verify_jwt = false
+import_map = "./functions/notify-status-change/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/notify-status-change/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/notify-status-change/*.html" ]
+</file>
+
+<file path=".env.example">
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+# Change file name to .env, and delete this comment
+</file>
+
+<file path="LICENSE">
+The MIT License (MIT)
+
+Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</file>
+
+<file path="src/app/map.tsx">
+import { supabase } from '@/lib/Supabase';
+import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Callout, Marker } from 'react-native-maps';
+
+type Pantry = {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  current_status: 'green' | 'orange' | 'red' | 'unknown';
+  lastStatusTime: number;
+}
+
+// Mock data for pantries before updates in Supabase
+// const SAMPLE_PANTRIES = [
+//   {id: '1', name: 'Old Town Pantry', latitude: 38.8048, longitude: -77.0469, status: 'empty'},
+//   {id: '2', name: 'Del Ray Pantry', latitude: 38.8250, longitude: -77.0580, status: 'full'},
+//   {id: '3', name: 'West End Pantry', latitude: 38.8120, longitude: -77.1100, status: 'almost_empty'}
+// ]
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const [pantries, setPantries] = useState<Pantry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      
+      if (status == 'granted') {
+        setPermissionGranted(true);
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  useEffect(() => {
+    fetchPantryData();
+  }, []);
+
+  const fetchPantryData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pantries')
+        .select('id, name, address, latitude, longitude, current_status, last_status_time');
+      if (error) throw error;
+      if (data) setPantries(data as unknown as Pantry[]);
+    } catch (error: any) {
+      console.error('Fetch error:', error.message);
+      Alert.alert('Error', 'Error: Could not load pantry data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatus = (status: string) => {
+    switch (status) {
+      case 'green':
+        return { color: '#2e7d32', label: 'Stocked', bg: '#e8f5e9' };
+      case 'orange':
+        return { color: '#e65100', label: 'Low Stock', bg: '#fff3e0' };
+      case 'red':
+        return { color: '#c62828', label: 'Empty', bg: '#ffebee' };
+      default:
+        return { color: '#616161', label: 'Unknown', bg: '#f5f5f5' }; // For unknown status
+    }
+  };
+
+  if (loading) {
+    return (
+        <View style={styles.loaderContainer}>
+            <Text style={styles.loadingText}>Loading...</Text>
+            <ActivityIndicator size="large" color="#2e7d32" />
+        </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        showsUserLocation={permissionGranted}
+        initialRegion={{
+          latitude: 38.8048,
+          longitude: -77.0469,
+          latitudeDelta: 0.08,
+          longitudeDelta: 0.08,
+        }}
+      >
+        {pantries.map((pantry) => {
+          const status = getStatus(pantry.current_status);
+          return (
+            <Marker
+              key={pantry.id}
+              coordinate={{
+                latitude: Number(pantry.latitude),
+                longitude: Number(pantry.longitude),
+              }}
+              pinColor={status.color}
+            >
+              <Callout tooltip onPress={() => router.push(`/pantry/${pantry.id}`)}>
+                <View style={styles.calloutContainer}>
+                  <View style={styles.headerRow}>
+                    <Text style={styles.calloutTitle}>
+                      {pantry.name}
+                    </Text>
+                    <View style={[styles.badge, { backgroundColor: status.bg }]}>
+                      <Text style={[styles.badgeText, { color: status.color }]}>
+                        {status.label}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.calloutAddress} numberOfLines={2}>
+                    {pantry.address}
+                  </Text>
+
+                  <Text style={styles.actionPrompt}>Tap to view pantry details</Text>
+                </View>
+              </Callout>
+            </Marker>
+          );
+      })}
+      </MapView>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => router.replace('/')}
+      >
+        <Text style={styles.backButtonText}>←</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  map: { width: '100%', height: '100%' },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: '#2e7d32',
+    margin: 24,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  calloutContainer: {
+    backgroundColor: '#ffffff',
+    padding: 12,
+    width: 220,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 4.5,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  calloutTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    flex: 1,
+    marginRight: 6,
+  },
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    fontStyle: 'italic',
+    textTransform: 'uppercase',
+  },
+  calloutAddress: {
+    fontSize: 12,
+    color: '#646464',
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  actionPrompt: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#007aff',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#1a1a1a',
+  }
+});
+</file>
+
+<file path="supabase/functions/notify-status-change/index.ts">
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.29.0';
+
+serve(async (req) => {
+  try {
+    const payload = await req.json();
+    const record = payload.record;
+    const oldRecord = payload.old_record;
+
+  // Only trigger if current_status actually changed
+    if (oldRecord && record.current_status === oldRecord.current_status) {
+      return new Response(JSON.stringify({message: 'No status change detected'}), { 
+        headers: { 'Content-Type': 'application/json' },
+        status: 200 
+      });
+    }
+
+  // Connect to Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Fetch all push tokens for the pantry
+    const { data: subscribers, error } = await supabase
+      .from('pantry_favorites')
+      .select('push_token')
+      .eq('pantry_id', record.id);
+
+      if (error || !subscribers || subscribers.length === 0) {
+        return new Response(JSON.stringify({message: 'No subscribers found for this pantry' }), {
+          headers: { 'Content-Type': 'application/json' },
+          status: 200
+        });
+      }
+
+      const statusLabels: Record<string, string> = {
+        green: 'Fully stocked',
+        orange: 'Low stock',
+        red: 'Empty'
+      };
+
+    // Format messages for Expo Push API
+      const messages = subscribers.map((sub) => ({
+        to: sub.push_token,
+        sound: 'default',
+        title: `${record.name} Updated!`,
+        body: `Status is now: ${statusLabels[record.current_status] || record.current_status}`,
+        data: { pantryId: record.id },
+      }));
+
+      // Send notifications to Expo
+      const expoResponse = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(messages),
+      });
+    
+      const resData = await expoResponse.json();
+
+      return new Response(JSON.stringify({ success: true, count: messages.length, resData}), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 500,
+      });
+    }
+  });
+</file>
+
+<file path=".gitignore">
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env
+.env.local
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# generated native folders
+/ios
+/android
+</file>
+
+<file path="tsconfig.json">
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@/assets/*": [
+        "./assets/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}
+</file>
+
+<file path="src/app/report-status.tsx">
+import { supabase } from '@/lib/Supabase';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+
+const getStatusStyle = (status: string) => {
+  switch (status) {
+    case 'Stocked':
+    case 'green':
+      return { color: '#2e7d32', backgroundColor: '#e8f5e9' };
+    case 'Almost Empty':
+    case 'Low Stock':
+    case 'orange':
+      return { color: '#e65100', backgroundColor: '#fff3e0' };
+    case 'Empty':
+    case 'red':
+      return { color: '#c62828', backgroundColor: '#ffebee' };
+    default:
+      return { color: '#616161', backgroundColor: '#f5f5f5' };
+  }
+};
+
+const STATUS_TO_DB_VALUE: Record<string, 'green' | 'orange' | 'red'> = {
+  "Stocked": 'green',
+  "Almost Empty": 'orange',
+  "Empty": 'red'
+};
+
+export default function ReportStatus() {
+  const router = useRouter();
+  const { pantryId, pantryName: pantryNameParam, currentStatus: currentStatusParam } = useLocalSearchParams<{
+    pantryId?: string;
+    pantryName?: string;
+    currentStatus?: string;
+  }>();
+  const pantryName = pantryNameParam ?? 'Old Town Pantry';
+  const currentStatus = currentStatusParam ?? 'Almost Empty';
+  const currentStatusStyle = getStatusStyle(currentStatus);
+
+  const [selectedStatus, setSelectedStatus] = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!selectedStatus) return;
+    if (!pantryId) {
+      Alert.alert('Error', 'Pantry ID is missing. Cannot submit update.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('pantries')
+        .update({ current_status: STATUS_TO_DB_VALUE[selectedStatus] })
+        .eq('id', pantryId);
+
+      if (error) throw error;
+      router.back();
+    } catch (error: any) {
+      Alert.alert('Submission Error', error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Report Pantry Status</Text>
+        <Text style={styles.subtitle}>
+          A quick update helps neighbors know when this pantry needs support.
+        </Text>
+      </View>
+
+      <View style={styles.pantryCard}>
+        <Text style={styles.pantryName}>{pantryName}</Text>
+        <View style={styles.statusRow}>
+          <Text style={styles.statusLabel}>Current status</Text>
+          <View style={[styles.currentStatusBadge, { backgroundColor: currentStatusStyle.backgroundColor }]}>
+            <Text style={[styles.currentStatusText, { color: currentStatusStyle.color }]}>
+              {currentStatus}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.lastUpdated}>You can help keep this information current.</Text>
+      </View>
+
+      <Text style={styles.question}>How stocked is this pantry right now?</Text>
+      <Text style={styles.helperText}>Choose the option that best matches what you see.</Text>
+
+      <View style={styles.options}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: selectedStatus === 'Stocked' }}
+          style={[styles.option, styles.stockedOption, selectedStatus === 'Stocked' && styles.stockedSelected]}
+          onPress={() => setSelectedStatus('Stocked')}
+        >
+          <Text style={[styles.optionTitle, styles.stockedText]}>Stocked</Text>
+          <Text style={styles.optionDescription}>There is plenty available.</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: selectedStatus === 'Almost Empty' }}
+          style={[styles.option, styles.lowOption, selectedStatus === 'Almost Empty' && styles.lowSelected]}
+          onPress={() => setSelectedStatus('Almost Empty')}
+        >
+          <Text style={[styles.optionTitle, styles.lowText]}>Almost Empty</Text>
+          <Text style={styles.optionDescription}>Only a few items are left.</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: selectedStatus === 'Empty' }}
+          style={[styles.option, styles.emptyOption, selectedStatus === 'Empty' && styles.emptySelected]}
+          onPress={() => setSelectedStatus('Empty')}
+        >
+          <Text style={[styles.optionTitle, styles.emptyText]}>Empty</Text>
+          <Text style={styles.optionDescription}>The shelf needs a refill.</Text>
+        </Pressable>
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={!selectedStatus || submitting}
+        style={[styles.submitButton, (!selectedStatus || submitting) && styles.submitButtonDisabled]}
+        onPress={handleSubmit}
+      >
+        {submitting ? (
+          <ActivityIndicator color="#ffffff" />
+        ) : (
+          <Text style={styles.submitButtonText}>Submit report</Text>
+        )}
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 20,
+    paddingTop: 52,
+    paddingBottom: 32,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  title: {
+    color: '#1a1a1a',
+    fontSize: 28,
+    fontWeight: '800',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#666',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  pantryCard: {
+    backgroundColor: '#ffffff',
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 24,
+    padding: 16,
+  },
+  pantryName: {
+    color: '#1a1a1a',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 14,
+  },
+  statusRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  statusLabel: {
+    color: '#444',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  currentStatusBadge: {
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  currentStatusText: {
+    fontSize: 11,
+    fontWeight: '700',
+    fontStyle: 'italic',
+    textTransform: 'uppercase',
+  },
+  lastUpdated: {
+    color: '#646464',
+    fontSize: 13,
+  },
+  question: {
+    color: '#333',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  helperText: {
+    color: '#666',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  options: {
+    gap: 12,
+  },
+  option: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    elevation: 2,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  stockedOption: {
+    borderColor: '#c8e6c9',
+  },
+  lowOption: {
+    borderColor: '#ffe0b2',
+  },
+  emptyOption: {
+    borderColor: '#ffcdd2',
+  },
+  stockedSelected: {
+    backgroundColor: '#e8f5e9',
+    borderColor: '#2e7d32',
+  },
+  lowSelected: {
+    backgroundColor: '#fff3e0',
+    borderColor: '#e65100',
+  },
+  emptySelected: {
+    backgroundColor: '#ffebee',
+    borderColor: '#c62828',
+  },
+  optionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  stockedText: {
+    color: '#2e7d32',
+  },
+  lowText: {
+    color: '#e65100',
+  },
+  emptyText: {
+    color: '#c62828',
+  },
+  optionDescription: {
+    color: '#646464',
+    fontSize: 14,
+  },
+  submitButton: {
+    alignItems: 'center',
+    backgroundColor: '#2e7d32',
+    borderRadius: 12,
+    marginTop: 'auto',
+    minHeight: 54,
+    justifyContent: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#a9c8ab',
+  },
+  submitButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+});
+</file>
+
+<file path="README.md">
+# ShelfHelp
+
+This is an [Expo](https://expo.dev) project.
+</file>
+
+<file path="src/app/_layout.tsx">
+import { Stack } from 'expo-router';
+
+export default function RootLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        // headerTransparent: true,
+        // headerBlurEffect: 'systemUltraThinMaterial',
+        // headerTintColor: '#000',
+        // headerTitleStyle: {
+        //   fontWeight: 'bold',
+        //   color: '#fff',
+        // },
+      }}
+    >
+      <Stack.Screen 
+        name="index" 
+        options={{ 
+          title: 'ShelfHelp',
+          animation: 'slide_from_left',
+        }} />
+      <Stack.Screen 
+        name="map" 
+        options={{ 
+          title: 'Alexandria Pantries',
+          animation: 'slide_from_right',
+        }} />
+      <Stack.Screen 
+        name="pantry/[id]" 
+        options={{ 
+          title: 'Pantry Details',
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+        }} />
+    </Stack>
+  );
+}
+</file>
+
+<file path="app.json">
+{
+  "expo": {
+    "name": "ShelfHelp",
+    "slug": "ShelfHelp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "shelfhelp",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.anonymous.ShelfHelp",
+      "infoPlist": {}
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.anonymous.ShelfHelp"
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow ShelfHelp to access your location to locate food pantries closest to you."
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2e7d32"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f2f0cdf0-998b-443a-82a8-e45ccc70996e"
+      }
+    },
+    "owner": "joshuakoos-team"
+  }
+}
+</file>
+
+<file path="src/app/pantry/[id].tsx">
+import { supabase } from '@/lib/Supabase';
+import { requestForPushNotificationsAsync } from '@/lib/notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+type PantryDetail = {
+    id: string;
+    name: string;
+    address: string;
+    current_status: 'green' | 'orange' | 'red' | 'unknown';
+}
+
+const getStatus = (status: string | undefined) => {
+  switch (status) {
+    case 'green':
+      return { color: '#2e7d32', label: 'Stocked', bg: '#e8f5e9' };
+    case 'orange':
+      return { color: '#e65100', label: 'Low Stock', bg: '#fff3e0' };
+    case 'red':
+      return { color: '#c62828', label: 'Empty', bg: '#ffebee' };
+    default:
+      return { color: '#616161', label: 'Unknown', bg: '#f5f5f5' };
+  }
+};
+
+const FAVORITES_KEY = '@favorite_pantries';
+
+export default function PantryDetailScreen() {
+    const { id } = useLocalSearchParams();
+    const router = useRouter();
+    const [pantry, setPantry] = useState<PantryDetail | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [pushToken, setPushToken] = useState<string | null>(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (id) {
+            fetchPantry();
+            checkIfFavorite();
+            }
+        }, [id])
+    );
+
+    const fetchPantry = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('pantries')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+            if (data) setPantry(data as PantryDetail);
+        } catch (err: any) {
+            console.error(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const checkIfFavorite = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            if (storedFavorites) {
+                const favoritesList: string[] = JSON.parse(storedFavorites);
+                setIsFavorite(favoritesList.includes(id as string));
+            }
+        } catch (error) {
+            console.error('Error checking favorites:', error);
+        }
+    };
+
+    useEffect(() => {
+        requestForPushNotificationsAsync().then((token) => setPushToken(token));
+    }, []);
+    
+    const toggleFavorite = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            let favoritesList: string[] = storedFavorites ? JSON.parse(storedFavorites) : [];
+
+            if (isFavorite) {
+                favoritesList = favoritesList.filter((favID) => favID != id);
+
+                if (pushToken) {
+                    await supabase
+                        .from('pantry_favorites')
+                        .delete()
+                        .eq('pantry_id', id)
+                        .eq('push_token', pushToken);
+                }
+            } else {
+                favoritesList.push(id as string);
+
+                if (pushToken) {
+                    await supabase
+                        .from('pantry_favorites')
+                        .upsert({ pantry_id: id as string, push_token: pushToken });
+                }
+            }
+
+            await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favoritesList));
+            setIsFavorite(!isFavorite);
+        } catch (error) {
+            console.error('Error updating favorites:', error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.centered}>
+                <ActivityIndicator size="large" color="#2e7d32" />
+            </View>
+        );
+    }
+
+    if (pantry == null) {
+        return (
+            <View style={styles.centered}>
+                <Text style={styles.errorText}>Pantry not found.</Text>
+            </View>
+        );
+    }
+    
+    return (
+    <View style={styles.overlay}>
+        <View style={styles.card}>
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={styles.titleRow}>
+                    <Text style={styles.title} numberOfLines={1}>
+                        {pantry?.name}
+                    </Text>
+                    <TouchableOpacity onPress={toggleFavorite} style={styles.favoritesButton}>
+                        <Text style={[styles.starText, isFavorite && styles.starActive]}>
+                            {isFavorite ? '★' : '☆'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+                    <Text style={styles.closeText}>✕</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* Body Details */}
+            <Text style={styles.address} numberOfLines={2}>
+                {pantry?.address}
+            </Text>
+
+            <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Status:</Text>
+                <Text style={[styles.statusValue, { color: getStatus(pantry?.current_status).color }]}>
+                    {getStatus(pantry?.current_status).label}
+                </Text>
+            </View>
+
+            <TouchableOpacity
+                style={styles.reportButton}
+                onPress={() =>
+                    router.push({
+                        pathname: '/report-status',
+                        params: {
+                            pantryId: pantry.id,
+                            pantryName: pantry.name,
+                            currentStatus: getStatus(pantry.current_status).label,
+                        },
+                    })
+                }
+            >
+                <Text style={styles.doneButtonText}>Report status</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.closeActionButton} onPress={() => router.back()}>
+                <Text style={styles.closeActionButtonText}>Close</Text>
+            </TouchableOpacity>
+        </View>
+    </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        //backgroundColor: 'rgba(0, 0, 0, 0.4)', // Uncomment if we want a dark background
+        justifyContent: 'flex-end', // Puts card at bottom
+    },
+    card: {
+        width: '100%',
+        backgroundColor: '#ffffff',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        padding: 20,
+        paddingBottom: 36,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 8,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    titleRow: {
+        flexDirection: 'row',
+        flex: 1,
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1a1a1a',
+        flex: 1,
+        marginRight: 8,
+    },
+    closeButton: {
+        padding: 4,
+    },
+    closeText: {
+        fontSize: 16,
+        color: '#888',
+        fontWeight: '600',
+    },
+    address: {
+        fontSize: 13,
+        color: '#666',
+        marginBottom: 12,
+        lineHeight: 18,
+    },
+    statusRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+        backgroundColor: '#f8f9fa',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    statusLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#444',
+        marginRight: 6,
+    },
+    statusValue: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    reportButton: {
+        backgroundColor: '#2e7d32',
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    doneButtonText: {
+        color: '#ffffff',
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    closeActionButton: {
+        alignItems: 'center',
+        borderColor: '#d5ddd6',
+        borderRadius: 8,
+        borderWidth: 1,
+        marginTop: 10,
+        paddingVertical: 10,
+    },
+    closeActionButtonText: {
+        color: '#36523b',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    errorText: {
+        fontSize: 14,
+        color: '#646464',
+    },
+    favoritesButton: {
+        padding: 4,
+    },
+    starText: {
+        fontSize: 22,
+        color: '#b0bec5',
+    },
+    starActive: {
+        color: '#fbc53c'
+    }
+});
+</file>
+
+<file path="src/app/index.tsx">
+import PantryMap from '@/components/PantryMap';
+import { supabase } from '@/lib/Supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+type Pantry = {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  current_status: 'green' | 'orange' | 'red' | 'unknown';
+};
+
+type PantryWithDistance = Pantry & { distance: number };
+
+const FAVORITES_KEY = '@favorite_pantries';
+
+// Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 3958.8;
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
+
+const getStatus = (status: string) => {
+    switch (status) {
+      case 'green':
+        return { color: '#2e7d32', label: 'Stocked', bg: '#e8f5e9' };
+      case 'orange':
+        return { color: '#e65100', label: 'Low Stock', bg: '#fff3e0' };
+      case 'red':
+        return { color: '#c62828', label: 'Empty', bg: '#ffebee' };
+      default:
+        return { color: '#616161', label: 'Unknown', bg: '#f5f5f5' }; // For unknown status
+    }
+};
+
+export default function HomeListScreen() {
+    const router = useRouter();
+    const [pantries, setPantries] = useState<PantryWithDistance[]>([]);
+    const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+    const [location, setLocation] = useState<Location.LocationObject>();
+    const [permissionGranted, setPermissionGranted] = useState(true);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      let subscription: Location.LocationSubscription;
+
+      async function startLocationWatch() {
+        try {
+          let { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission to access location was denied');
+            setLoading(false);
+            return;
+          }
+
+          setPermissionGranted(true);
+
+          subscription = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.Balanced,
+              timeInterval: 5000,   // Updates every 5s
+              distanceInterval: 10, // Or every 10m moved
+            },
+            (newLocation) => {
+              setLocation(newLocation);
+              setLoading(false);
+            }
+          );
+        } catch (error) {
+          console.error(error);
+          setLoading(false);
+        }
+      }
+
+      startLocationWatch();
+
+      return () => {
+        if (subscription) {
+          subscription.remove();
+        }
+      };
+    }, []);
+
+    useEffect(() => {
+      if (location) {
+        fetchPantryData();
+      }
+    }, [location]);
+    
+    const USER_LAT = permissionGranted && location ? location.coords.latitude : 38.8048;
+    const USER_LON = permissionGranted && location ? location.coords.longitude : -77.0469;
+
+    useEffect(() => {
+        fetchPantryData();
+    }, []);
+
+    const fetchPantryData = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('pantries')
+                .select('id, name, address, latitude, longitude, current_status');
+            
+            if (error) throw error;
+            
+            if (data) {
+                const pantriesWithDistance = (data as Pantry[]).map(pantry => ({
+                    ...pantry,
+                    distance: calculateDistance(USER_LAT, USER_LON, pantry.latitude, pantry.longitude)
+                })).sort((a, b) => a.distance - b.distance);
+
+                setPantries(pantriesWithDistance);
+            }
+        } catch (error: any) {
+            console.error('Fetch error:', error.message);
+            Alert.alert('Error', 'Could not load pantry data.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadFavorites = async () => {
+        try {
+            const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
+            if (storedFavorites) {
+                setFavoriteIds(JSON.parse(storedFavorites));
+            } else {
+                setFavoriteIds([]);
+            }
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            loadFavorites();
+            fetchPantryData();
+        }, [location])
+    );
+
+    const renderPantryCard = (pantry: PantryWithDistance) => {
+        const status = getStatus(pantry.current_status);
+        const isFav = favoriteIds.includes(pantry.id);
+
+        return (
+            <TouchableOpacity 
+                key={pantry.id} 
+                style={styles.card}
+                onPress={() => router.push(`/pantry/${pantry.id}`)}
+            >
+                <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle} numberOfLines={1}>
+                        <Text style={styles.favoriteIcon}>{isFav ? '★ ' : ''}</Text>
+                        <Text>{pantry.name}</Text>
+                    </Text>
+                </View>
+                
+                <View style={styles.cardBody}>
+                    <Text style={styles.distanceText}>{pantry.distance.toFixed(1)} miles away</Text>
+                    <View style={[styles.badge, { backgroundColor: status.bg }]}>
+                        <Text style={[styles.badgeText, { color: status.color }]}>
+                            {status.label}
+                        </Text>
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    if (loading) {
+        return (
+            <View style={styles.centered}>
+                <Text style={styles.loadingText}>Loading...</Text>
+                <ActivityIndicator size="large" color="#2e7d32" />
+            </View>
+        );
+    }
+
+    const favoritedPantries = pantries.filter(p => favoriteIds.includes(p.id));
+
+    const nearbyPantries = pantries;
+
+    return (
+        <View style={styles.container}>
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+                <View style={styles.headerBlock}>
+                    <View style={styles.logoPlaceholder}>
+                        {/* wip logo */}
+                        <Image 
+                           source={require('../components/Logo.png')} 
+                            style={styles.logoImage}
+                        /> 
+                    </View>
+                    <Text style={styles.mainTitle}>Shelf Help</Text>
+                    <Text style={styles.subtitle}>Community Pantry Tracker</Text>
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Favorites</Text>
+                    {favoritedPantries.length > 0 ? (
+                        favoritedPantries.map(renderPantryCard)
+                    ) : (
+                        <Text style={styles.emptyText}>No favorited pantries yet. Tap the star on any pantry to favorite it!</Text>
+                    )}
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Nearby Pantries</Text>
+                    {nearbyPantries.map(renderPantryCard)}
+                </View>
+
+                <View style={styles.embeddedMapWrapper}>
+                    <PantryMap
+                        pantries={pantries as any}
+                        userLocation={location ? location.coords : null}
+                        permissionGranted={permissionGranted}
+                    />
+                </View>
+
+                <TouchableOpacity style={styles.mapButton} onPress={() => router.push('/map')}>
+                    <Text style={styles.mapButtonText}>Full Map View</Text>
+                </TouchableOpacity>
+
+            </ScrollView>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingTop: 40,
+        backgroundColor: '#f8f9fa',
+    },
+    scrollContent: {
+        padding: 20,
+        paddingBottom: 40,
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+    },
+    loadingText: {
+        color: '#2e7d32',
+        margin: 24,
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    headerBlock: {
+        alignItems: 'center',
+        marginBottom: 24,
+        marginTop: 10,
+    },
+    logoPlaceholder: {
+        width: 60,
+        height: 60,
+        backgroundColor: '#f8f9fa',
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoImage: {
+        width: 70,
+        height: 70,
+        resizeMode: 'contain',
+        marginBottom: 8,
+    },
+    mainTitle: {
+        fontSize: 28,
+        fontWeight: '800',
+        color: '#1a1a1a',
+    },
+    subtitle: {
+        fontSize: 14,
+        color: '#666',
+        marginTop: 4,
+    },
+    mapButton: {
+        position: 'absolute',
+        bottom: 35,
+        left: 27,
+        right: 27,
+        backgroundColor: '#2e7d32',
+        paddingVertical: 14,
+        borderRadius: 16,
+        alignItems: 'center',
+        marginBottom: 32,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.4,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    mapButtonText: {
+        color: '#ffffff',
+        fontWeight: '700',
+        fontSize: 16,
+    },
+    section: {
+        marginBottom: 24,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#333',
+        marginBottom: 12,
+        marginLeft: 4,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: '#757575',
+        fontStyle: 'italic',
+        marginBottom: 8,
+        marginLeft: 4,
+    },
+    favoriteIcon: {
+        color: '#fbc53c',
+    },
+    card: {
+        backgroundColor: '#ffffff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1a1a1a',
+        flex: 1,
+    },
+    cardBody: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    distanceText: {
+        fontSize: 13,
+        color: '#646464',
+        fontWeight: '500',
+    },
+    badge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+    },
+    badgeText: {
+        fontSize: 11,
+        fontWeight: '700',
+        fontStyle: 'italic',
+        textTransform: 'uppercase',
+    },
+    embeddedMapWrapper: {
+        height: 300,
+        borderRadius: 16,
+        overflow: 'hidden',
+        marginBottom: 20,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        position: 'relative',
+    }
+});
+</file>
+
+<file path="package.json">
+{
+  "name": "shelfhelp",
+  "main": "expo-router/entry",
+  "version": "1.0.0",
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@supabase/supabase-js": "^2.117.2",
+    "expo": "^57.0.22",
+    "expo-constants": "~57.0.20",
+    "expo-dev-client": "~57.0.19",
+    "expo-device": "~8.0.10",
+    "expo-font": "~57.0.4",
+    "expo-glass-effect": "~57.0.3",
+    "expo-image": "~57.0.5",
+    "expo-linking": "~57.0.10",
+    "expo-location": "~57.0.17",
+    "expo-notifications": "~57.0.21",
+    "expo-router": "~57.0.21",
+    "expo-splash-screen": "~57.0.9",
+    "expo-status-bar": "~57.0.1",
+    "expo-symbols": "~57.0.3",
+    "expo-system-ui": "~57.0.4",
+    "expo-web-browser": "~57.0.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-maps": "1.27.2",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-url-polyfill": "^4.0.0",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.4",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "reset-project": "node ./scripts/reset-project.js",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "lint": "expo lint"
+  },
+  "private": true
+}
+</file>
+
+</files>
