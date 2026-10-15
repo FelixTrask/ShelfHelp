@@ -2,7 +2,9 @@ import { supabase } from '@/lib/Supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+// TODO: Make status to db value lookup table function
 
 const getStatusStyle = (status: string) => {
   switch (status) {
@@ -50,7 +52,7 @@ export default function ReportStatus() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.7,
@@ -76,14 +78,14 @@ export default function ReportStatus() {
     setSubmitting(true);
     try {
       const response = await fetch(photoUri);
-      const blob = await response.blob();
+      const arrayBuffer = await response.arrayBuffer(); // Changed to an ArrayBuffer for fixed length + specifing file type
       const fileName = `pantry_${pantryId}_${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from('pantry-photos')
-        .upload(fileName, blob);
+        .upload(fileName, arrayBuffer, { contentType: 'image/jpeg' });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw new Error(`Photo upload: ${uploadError.message}`); // Changed to specify whether it's an upload error or report error
 
       const { data: publicUrlData } = supabase.storage
         .from('pantry-photos')
@@ -92,7 +94,7 @@ export default function ReportStatus() {
       const photoUrl = publicUrlData.publicUrl;
 
       const { error: reportError } = await supabase
-        .from('pantries')
+        .from('pantry_reports') // Changed to new pantry-reports table
         .insert({
           pantry_id: pantryId,
           reported_status: STATUS_TO_DB_VALUE[selectedStatus],
@@ -100,7 +102,7 @@ export default function ReportStatus() {
           status: 'pending',
         });
 
-      if  (reportError) throw reportError;
+      if  (reportError) throw new Error(`Saving report: ${reportError.message}`); // Changed to specify whether it's an upload error or report error
 
       Alert.alert(
         'Submitted for Review',
@@ -115,7 +117,9 @@ export default function ReportStatus() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView   
+    style={{ flex: 1, backgroundColor: '#f8f9fa' }}
+    contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Report Pantry Status</Text>
         <Text style={styles.subtitle}>
@@ -156,20 +160,7 @@ export default function ReportStatus() {
         </Pressable>
       )}
 
-      <Pressable
-        accessibilityRole="button"
-        disabled={!selectedStatus || !photoUri || submitting}
-        style={[styles.submitButton, (!selectedStatus || !photoUri || submitting) && styles.submitButtonDisabled]}
-        onPress={handleSubmit}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <Text style={styles.submitButtonText}>Submit for Approval</Text>
-        )}
-      </Pressable>
-
-      <Text style={styles.question}>How stocked is this pantry right now?</Text>
+      <Text style={styles.question}>2. How stocked is this pantry right now?</Text>
       <Text style={styles.helperText}>Choose the option that best matches what you see.</Text>
 
       <View style={styles.options}>
@@ -206,8 +197,8 @@ export default function ReportStatus() {
 
       <Pressable
         accessibilityRole="button"
-        disabled={!selectedStatus || submitting}
-        style={[styles.submitButton, (!selectedStatus || submitting) && styles.submitButtonDisabled]}
+        disabled={!selectedStatus || !photoUri || submitting}
+        style={[styles.submitButton, (!selectedStatus || !photoUri || submitting) && styles.submitButtonDisabled]}
         onPress={handleSubmit}
       >
         {submitting ? (
@@ -216,14 +207,12 @@ export default function ReportStatus() {
           <Text style={styles.submitButtonText}>Submit for Approval</Text>
         )}
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
     paddingHorizontal: 20,
     paddingTop: 52,
     paddingBottom: 32,
@@ -351,7 +340,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2e7d32',
     borderRadius: 12,
-    marginTop: 'auto',
+    marginTop: 24,
     marginBottom: 16,
     minHeight: 54,
     justifyContent: 'center',

@@ -2,7 +2,7 @@ import { supabase } from '@/lib/Supabase';
 import { requestForPushNotificationsAsync } from '@/lib/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type PantryDetail = {
@@ -48,7 +48,7 @@ export default function PantryDetailScreen() {
         try {
             const { data, error } = await supabase
                 .from('pantries')
-                .select('*')
+                .select('id, name, address, latitude, longitude, current_status')
                 .eq('id', id)
                 .single();
 
