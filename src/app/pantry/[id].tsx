@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/Supabase';
+import { requestForPushNotificationsAsync } from '@/lib/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type PantryDetail = {
@@ -30,8 +31,9 @@ export default function PantryDetailScreen() {
     const { id } = useLocalSearchParams();
     const router = useRouter();
     const [pantry, setPantry] = useState<PantryDetail | null>(null);
-    const[loading, setLoading] = useState(true);
-    const[isFavorite, setIsFavorite] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [pushToken, setPushToken] = useState<string | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -46,7 +48,7 @@ export default function PantryDetailScreen() {
         try {
             const { data, error } = await supabase
                 .from('pantries')
-                .select('*')
+                .select('id, name, address, latitude, longitude, current_status')
                 .eq('id', id)
                 .single();
 
@@ -71,6 +73,10 @@ export default function PantryDetailScreen() {
         }
     };
 
+    useEffect(() => {
+        requestForPushNotificationsAsync().then((token) => setPushToken(token));
+    }, []);
+    
     const toggleFavorite = async () => {
         try {
             const storedFavorites = await AsyncStorage.getItem(FAVORITES_KEY);
@@ -78,8 +84,22 @@ export default function PantryDetailScreen() {
 
             if (isFavorite) {
                 favoritesList = favoritesList.filter((favID) => favID != id);
+
+                if (pushToken) {
+                    await supabase
+                        .from('pantry_favorites')
+                        .delete()
+                        .eq('pantry_id', id)
+                        .eq('push_token', pushToken);
+                }
             } else {
                 favoritesList.push(id as string);
+
+                if (pushToken) {
+                    await supabase
+                        .from('pantry_favorites')
+                        .upsert({ pantry_id: id as string, push_token: pushToken });
+                }
             }
 
             await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(favoritesList));

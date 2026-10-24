@@ -36,13 +36,31 @@
         }
       ],
       "expo-font",
-      "expo-image",
-      "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#2e7d32"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermissionMessage": "Allow ShelfHelp to access your camera to take a verification photo of the pantry shelf."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f2f0cdf0-998b-443a-82a8-e45ccc70996e"
+      }
+    },
+    "owner": "joshuakoos-team"
   }
 }

@@ -1,7 +1,10 @@
 import { supabase } from '@/lib/Supabase';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+// TODO: Make status to db value lookup table function
 
 const getStatusStyle = (status: string) => {
   switch (status) {
@@ -38,8 +41,27 @@ export default function ReportStatus() {
   const currentStatusStyle = getStatusStyle(currentStatus);
 
   const [selectedStatus, setSelectedStatus] = useState('');
-
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Denied', 'Camera access is required to take a photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0].uri) {
+      setPhotoUri(result.assets[0].uri);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedStatus) return;
@@ -48,14 +70,44 @@ export default function ReportStatus() {
       return;
     }
 
+    if(!photoUri) {
+      Alert.alert('Error', 'Please take a verification photo before submitting.');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('pantries')
-        .update({ current_status: STATUS_TO_DB_VALUE[selectedStatus] })
-        .eq('id', pantryId);
+      const response = await fetch(photoUri);
+      const arrayBuffer = await response.arrayBuffer(); // Changed to an ArrayBuffer for fixed length + specifing file type
+      const fileName = `pantry_${pantryId}_${Date.now()}.jpg`;
 
-      if (error) throw error;
+      const { error: uploadError } = await supabase.storage
+        .from('pantry-photos')
+        .upload(fileName, arrayBuffer, { contentType: 'image/jpeg' });
+
+      if (uploadError) throw new Error(`Photo upload: ${uploadError.message}`); // Changed to specify whether it's an upload error or report error
+
+      const { data: publicUrlData } = supabase.storage
+        .from('pantry-photos')
+        .getPublicUrl(fileName);
+
+      const photoUrl = publicUrlData.publicUrl;
+
+      const { error: reportError } = await supabase
+        .from('pantry_reports') // Changed to new pantry-reports table
+        .insert({
+          pantry_id: pantryId,
+          reported_status: STATUS_TO_DB_VALUE[selectedStatus],
+          photo_url: photoUrl,
+          status: 'pending',
+        });
+
+      if  (reportError) throw new Error(`Saving report: ${reportError.message}`); // Changed to specify whether it's an upload error or report error
+
+      Alert.alert(
+        'Submitted for Review',
+        'Thank you for your report! It will be reviewed by our team shortly. Once reviewed, the pantry status will update automatically.'
+      );
       router.back();
     } catch (error: any) {
       Alert.alert('Submission Error', error.message);
@@ -65,7 +117,9 @@ export default function ReportStatus() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView   
+    style={{ flex: 1, backgroundColor: '#f8f9fa' }}
+    contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Report Pantry Status</Text>
         <Text style={styles.subtitle}>
@@ -86,7 +140,27 @@ export default function ReportStatus() {
         <Text style={styles.lastUpdated}>You can help keep this information current.</Text>
       </View>
 
-      <Text style={styles.question}>How stocked is this pantry right now?</Text>
+      <Text style={styles.question}>1. Take Verification Photo</Text>
+      <View style={styles.privacyWarningBox}>
+        <Text style={styles.privacyWarningText}>
+          🔒 Privacy Notice: Photos must be strictly of the pantry shelf. Never take photos of people.
+        </Text>
+      </View>
+
+      {photoUri ? (
+        <View style={styles.photoPreviewContainer}>
+          <Image source={{ uri: photoUri }} style={styles.photoPreview} />
+          <Pressable style={styles.retakeButton} onPress={takePhoto}>
+            <Text style={styles.retakeButtonText}>Retake Photo</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable style={styles.cameraButton} onPress={takePhoto}>
+          <Text style={styles.cameraButtonText}>Take Photo</Text>
+        </Pressable>
+      )}
+
+      <Text style={styles.question}>2. How stocked is this pantry right now?</Text>
       <Text style={styles.helperText}>Choose the option that best matches what you see.</Text>
 
       <View style={styles.options}>
@@ -123,24 +197,22 @@ export default function ReportStatus() {
 
       <Pressable
         accessibilityRole="button"
-        disabled={!selectedStatus || submitting}
-        style={[styles.submitButton, (!selectedStatus || submitting) && styles.submitButtonDisabled]}
+        disabled={!selectedStatus || !photoUri || submitting}
+        style={[styles.submitButton, (!selectedStatus || !photoUri || submitting) && styles.submitButtonDisabled]}
         onPress={handleSubmit}
       >
         {submitting ? (
           <ActivityIndicator color="#ffffff" />
         ) : (
-          <Text style={styles.submitButtonText}>Submit report</Text>
+          <Text style={styles.submitButtonText}>Submit for Approval</Text>
         )}
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
     paddingHorizontal: 20,
     paddingTop: 52,
     paddingBottom: 32,
@@ -203,7 +275,7 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 16,
   },
   helperText: {
     color: '#666',
@@ -268,7 +340,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2e7d32',
     borderRadius: 12,
-    marginTop: 'auto',
+    marginTop: 24,
+    marginBottom: 16,
     minHeight: 54,
     justifyContent: 'center',
   },
@@ -280,4 +353,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
+  privacyWarningBox: {
+    backgroundColor: '#fff3e0',
+    borderColor: '#ffeeba',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 4,
+  },
+  privacyWarningText: {
+    color: '#856404',
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  cameraButton: {
+    backgroundColor: '#e0e0e0',
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderStyle: 'dashed',
+  },
+  cameraButtonText: {
+    color: '#333',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  photoPreviewContainer: {
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  photoPreview: {
+    width: '100%',
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  retakeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#6c757d',
+    borderRadius: 6,
+  },
+  retakeButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  }
 });
