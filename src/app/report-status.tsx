@@ -143,7 +143,7 @@ export default function ReportStatus() {
       <Text style={styles.question}>1. Take Verification Photo</Text>
       <View style={styles.privacyWarningBox}>
         <Text style={styles.privacyWarningText}>
-          🔒 Privacy Notice: Photos must be strictly of the pantry shelf. Never take photos of people.
+          Privacy Notice: Photos must be strictly of the pantry shelf. Never take photos of people.
         </Text>
       </View>
 
